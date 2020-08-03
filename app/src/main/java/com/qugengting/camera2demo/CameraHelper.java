@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -23,8 +24,11 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
+import android.view.Display;
 import android.view.Surface;
 import android.view.TextureView;
+import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 
 import androidx.core.app.ActivityCompat;
 
@@ -40,9 +44,8 @@ import java.util.List;
 
 /**
  * @author:xuruibin
- * @date:2019/11/18
- * Description:参考：https://www.jianshu.com/p/0ea5e201260f
- *                  github:https://github.com/smashinggit/Study
+ * @date:2019/11/18 Description:参考：https://www.jianshu.com/p/0ea5e201260f
+ * github:https://github.com/smashinggit/Study
  */
 public class CameraHelper {
     private static final String TAG = CameraHelper.class.getSimpleName();
@@ -74,10 +77,16 @@ public class CameraHelper {
     private CameraActivity mActivity;
     private TextureView mTextureView;
 
+    private int screenWidth;
+
     public CameraHelper(CameraActivity activity, TextureView textureView) {
         this.mActivity = activity;
         this.mTextureView = textureView;
-        mDisplayRotation = mActivity.getWindowManager().getDefaultDisplay().getRotation();
+        Display display = mActivity.getWindowManager().getDefaultDisplay();
+        mDisplayRotation = display.getRotation();
+        Point outSize = new Point();
+        display.getSize(outSize);
+        screenWidth = outSize.x;//得到屏幕的宽度
         init();
     }
 
@@ -165,6 +174,14 @@ public class CameraHelper {
                         mPreviewSize.getWidth(), mPreviewSize.getHeight(),
                         Arrays.asList(previewSize));
             }
+
+            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(mTextureView.getLayoutParams());
+            double w = mPreviewSize.getWidth();
+            double h = mPreviewSize.getHeight();
+            double f = w / h;
+            lp.height = (int) (f * screenWidth);
+            lp.topMargin = PhoneUtil.dp2px(80);
+            mTextureView.setLayoutParams(lp);
 
             mTextureView.getSurfaceTexture().setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
 
